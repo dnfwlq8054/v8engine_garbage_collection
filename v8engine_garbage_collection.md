@@ -32,15 +32,14 @@ New space에는 2개의 semi영역이 있습니다. (JVM의 s0 s1)
 2개의 semi영역은 From과 To영역으로 불리며, 두개의 영역이 번갈아 가면서 그 역할을 합니다.  
 (슬라이드에서 동작 설명...)
 
-이러한 이동과정을 Cheney의 알고리즘이라고 하며, stop and copy와 tracing garbage collection라고 합니다.
-그리고 V8에서는 이를 Scavenger라고 부릅니다.
-https://v8.dev/blog/orinoco-parallel-scavenger#single-threaded-cheney%E2%80%99s-semispace-copy
+이러한 이동과정을 [Cheney](https://v8.dev/blog/orinoco-parallel-scavenger#single-threaded-cheney%E2%80%99s-semispace-copy)의 알고리즘이라고 하며, stop and copy와 tracing garbage collection라고 합니다.  
+그리고 V8에서는 이를 Scavenger라고 부릅니다.  
 
-지금 V8에서는 Parallel Scavenge방식을 사용하고 있습니다.
+지금 V8에서는 Parallel Scavenge방식을 사용하고 있습니다.  
 이는 기존에 단일 스레드 방식에서 멀티 스레드 방식으로 변경하여 stop the world 시간을 많이 줄였다고 합니다.  
-그리고 각 작업은 interleaved하게 진행되어서 빠르다고 합니다. https://ko.wikipedia.org/wiki/%EB%A9%94%EB%AA%A8%EB%A6%AC_%EC%9D%B8%ED%84%B0%EB%A6%AC%EB%B9%99
+그리고 각 작업은 [interleaved](https://ko.wikipedia.org/wiki/%EB%A9%94%EB%AA%A8%EB%A6%AC_%EC%9D%B8%ED%84%B0%EB%A6%AC%EB%B9%99)하게 진행되어서 빠르다고 합니다.  
 ![image3](parallel_scavenger.png)
-https://v8.dev/blog/trash-talk#scavenging
+
 
 ### Major GC
 ![image4](Mark-Sweep-Compact.png)
@@ -49,7 +48,7 @@ Major GC는 Old space에 있는 객체들을 정리하는 GC입니다.
 V8 Engine에서 Mark-Sweep-Compact는 다음과 같이 동작합니다.  
 
 #### Marking
-DFS로 순회하면서 Tri-color(white, gray, black)로 마킹합니다.
+DFS로 순회하면서 Tri-color(white, gray, black)로 마킹합니다.  
 V8은 객체당 두 개의 마크 비트와 마킹 작업 목록을 사용하여 마킹을 구현합니다.  
 2개의 마크 비트는 흰색(00), 회색(10) 및 검은색(11)의 세 가지 색상을 인코딩합니다.  
 색상별로 다음과 같은 상태를 나타냅니다.
@@ -64,7 +63,7 @@ V8은 객체당 두 개의 마크 비트와 마킹 작업 목록을 사용하여
 
 #### Sweep
 Sweep은 지워진 개체가 남긴 메모리 간격을 사용 가능한 목록이라는 데이터 구조에 추가하는 프로세스입니다.  
-즉, 흰색으로 마킹된 객체들을 말하며, free-list라고 부르는 자료구조에 넣습니다.  (https://ko.wikipedia.org/wiki/%EB%B9%88%EC%B9%B8_%EB%AA%A9%EB%A1%9D)
+즉, 흰색으로 마킹된 객체들을 말하며, [free-list](https://ko.wikipedia.org/wiki/%EB%B9%88%EC%B9%B8_%EB%AA%A9%EB%A1%9D)라고 부르는 자료구조에 넣습니다.  
 
 
 
@@ -78,14 +77,22 @@ Compact는 압축하는 단계입니다. Sweep과정에서 free-list에 들어�
 때문에 모든 페이지에 대해서 압축을 진행하는 것이 아니라 일부 페이지만 압축을 진행합니다.  
 그래서 Sweep을 자주 활용하고, 여기에 있는 여유공간에 객체를 넣는다고 합니다.
 
-https://v8.dev/blog/trash-talk#major-gc
 
-완료된 후 모습 이런식으로 됩니다.
-![image7](major_complete.png)
+완료된 후 모습 이런식으로 됩니다.  
+![image7](major_complete.png)  
 
 Major GC도 V8 engine에서는 Parallel하게 만들어져 사용되고 있습니다.  
-![image8](parallel_major.png)
-이는 GC의 문제점인 stop the world를 최소한으로 줄이려고 사용합니다. 
-이러한 방식을 동시마킹이라고 합니다. 동시마킹이 완료되면 여러 도우미와 함께 병렬 압축 및 포인터 업데이트를 시작합니다.  
+![image8](parallel_major.png)  
+이는 GC의 문제점인 stop the world를 최소한으로 줄이려고 사용합니다.  
+이러한 방식을 동시마킹이라고 합니다. 동시마킹이 완료되면 여러 도우미와 함께 병렬 압축 및 포인터 업데이트를 시작합니다.    
 main 스레드는 일시 중지 중에 동시 스위핑 작업을 시작합니다.  
-이는 병렬 압축 작업과 main 스레드 자체에 동시에 실행되며 JavaScript가 main 스레드에서 실행 중일 때도 계속될 수 있습니다.
+이는 병렬 압축 작업과 main 스레드 자체에 동시에 실행되며 JavaScript가 main 스레드에서 실행 중일 때도 계속될 수 있습니다.  
+
+### Reference
+https://v8.dev/blog/trash-talk#scavenging  
+https://v8.dev/blog/trash-talk#major-gc  
+https://speakerdeck.com/deepu105/v8-minor-gc?slide=2  
+https://v8.dev/blog/orinoco-parallel-scavenger  
+https://v8.dev/blog/concurrent-marking
+https://ui.toast.com/weekly-pick/ko_20200228  
+https://fe-developers.kakaoent.com/2022/220519-garbage-collection/  
