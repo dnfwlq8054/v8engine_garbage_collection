@@ -11,7 +11,7 @@ Internet Explorer 6 and 7에는 이러한 알고리즘 방식이 사용되어 Me
 ### Mark-and-sweep algorithm
 가장 많이사용되는 알고리즘으로 tree구조를 갖고 있습니다.  
 Root라는 객체를 하나 생성한 후 Heap에 할당된 객체들을 참조하게 됩니다.  
-[image]
+![image1](Mark-and-sweep.png)
 때문에 각자 순환참조가 이뤄져도 Root와 연결이 끊겨있다면 지워버립니다.  
 
 ## V8 Engine garbage collection
@@ -23,7 +23,7 @@ V8 Engine의 GC에는 Minor GC와 Major GC가 있습니다.
 Minor GC는 New space에서 동작하고, Major GC는 Old space에서 동작합니다.  
 
 ### Minor GC(Scavenger)
-[image]
+![image2](v8engine_memory.png)
 https://speakerdeck.com/deepu105/v8-minor-gc?slide=2
 
 New space에는 2개의 semi영역이 있습니다. (JVM의 s0 s1)  
@@ -39,11 +39,11 @@ https://v8.dev/blog/orinoco-parallel-scavenger#single-threaded-cheney%E2%80%99s-
 지금 V8에서는 Parallel Scavenge방식을 사용하고 있습니다.
 이는 기존에 단일 스레드 방식에서 멀티 스레드 방식으로 변경하여 stop the world 시간을 많이 줄였다고 합니다.  
 그리고 각 작업은 interleaved하게 진행되어서 빠르다고 합니다. https://ko.wikipedia.org/wiki/%EB%A9%94%EB%AA%A8%EB%A6%AC_%EC%9D%B8%ED%84%B0%EB%A6%AC%EB%B9%99
-[image]
+![image3](parallel_scavenger.png)
 https://v8.dev/blog/trash-talk#scavenging
 
 ### Major GC
-[image]
+![image4](Mark-Sweep-Compact.png)
 Major GC는 Old space에 있는 객체들을 정리하는 GC입니다.  
 여기에는 Mark-Sweep-Compact 알고리즘과 Tri-color 알고리즘을 사용합니다.  
 V8 Engine에서 Mark-Sweep-Compact는 다음과 같이 동작합니다.  
@@ -59,8 +59,8 @@ V8은 객체당 두 개의 마크 비트와 마킹 작업 목록을 사용하여
 이 체계를 삼색 마킹이라고 합니다.  
 더 이상 회색 개체가 없으면 마킹이 완료됩니다.  
 나머지 흰색 개체는 모두 연결할 수 없으며 안전하게 회수할 수 있습니다.  
-[image]
-[image]
+![image5](marking1.png)
+![image6](marking2.png)
 
 #### Sweep
 Sweep은 지워진 개체가 남긴 메모리 간격을 사용 가능한 목록이라는 데이터 구조에 추가하는 프로세스입니다.  
@@ -81,10 +81,10 @@ Compact는 압축하는 단계입니다. Sweep과정에서 free-list에 들어�
 https://v8.dev/blog/trash-talk#major-gc
 
 완료된 후 모습 이런식으로 됩니다.
-[image]
+![image7](major_complete.png)
 
 Major GC도 V8 engine에서는 Parallel하게 만들어져 사용되고 있습니다.  
-[image]
+![image8](parallel_major.png)
 이는 GC의 문제점인 stop the world를 최소한으로 줄이려고 사용합니다. 
 이러한 방식을 동시마킹이라고 합니다. 동시마킹이 완료되면 여러 도우미와 함께 병렬 압축 및 포인터 업데이트를 시작합니다.  
 main 스레드는 일시 중지 중에 동시 스위핑 작업을 시작합니다.  
